@@ -1,0 +1,209 @@
+<html>
+<head>
+
+<style media="screen" type="text/css">
+canvas, img {
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
+    border: 1px solid #ddd;
+}
+canvas#b { } /* 4 * 64 = 256 */
+</style>
+</head>
+<body>
+<canvas id='b' width='528' height='464'></canvas>
+
+
+<script type="text/javascript" src="js/FrameTimer.js"></script>
+    <script type="text/javascript" src="js/SpriteSheet.js"></script>
+    <script type="text/javascript" src="js/Animation.js"></script>
+    <script type="text/javascript">
+
+
+//set up canvas to not smooth pixels
+var canvas = document.getElementById('b');
+var ctx = document.getElementById('b').getContext("2d");
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+
+var context = canvas.getContext('2d'); 
+	document.body.appendChild(canvas); 
+//frametimer stuff?
+    var timer = new FrameTimer();
+            timer.tick();
+ 
+            var sprites = new SpriteSheet({
+                width: 5*4,
+                height: 3*4,
+                sprites: [
+                    { name: 'stand' },
+                    { name: 'eat'},
+                ]
+            });
+            var walk = new Animation([
+                    { sprite: 'stand', time: 1 },
+                    { sprite: 'eat', time: 1 },
+            ], sprites);
+            var birdImage = new Image();
+ 
+ 
+            birdImage.src = 'images/bird_sheet4x.png';
+
+
+
+//load Background image
+var bgReady = false;
+var bgImage = new Image();
+bgImage.onload = function () {
+	bgReady = true;
+};
+bgImage.src = "images/background.png";
+
+//load hero image
+var heroReady = false;
+var heroImage = new Image();
+heroImage.onload = function () {
+	heroReady = true;
+};
+heroImage.src = "images/hero.png";
+heroImage.width = 10;
+heroImage.height = 17;
+
+
+//Game Objects
+var hero = {
+  speed: 50, //movement in pixels per second
+  x: 0,
+  y: 0,
+  angle:0,
+  sensitivity: .05,
+  rotation: 0,
+  box:{width: heroImage.width, height: heroImage.height}
+};
+
+
+//rotation stuff
+var TO_RADIANS = Math.PI/180; 
+//function drawRotatedImage(image, x, y, angle) { 
+
+		// save the current co-ordinate system 
+		// before we screw with it
+//		context.save(); 
+
+		// move to the middle of where we want to draw our image
+//		context.translate(x, y);
+
+		// rotate around that point, converting our 
+		// angle from degrees to radians 
+//		context.rotate(angle * TO_RADIANS);
+
+		// draw it up and to the left by half the width
+		// and height of the image 
+//		context.drawImage(image, -(image.width/2), -(image.height/2));
+
+		// and restore the co-ords to how they were when we began
+//		context.restore(); 
+//	}
+	
+	
+ 
+
+
+//Render everything
+var render = function () {
+	if (bgReady) {
+		ctx.drawImage(bgImage, 0, 0, 528, 464);
+	}
+	if (heroReady) {
+		ctx.save();
+		ctx.translate(hero.x, hero.y)
+		ctx.rotate(hero.rotation * TO_RADIANS);
+		ctx.drawImage(heroImage, hero.x, hero.y, heroImage.width, heroImage.height);
+		ctx.restore();
+//		drawRotatedImage(heroImage, hero.x, hero.y, hero.rotation);
+	}
+
+
+};
+
+
+
+
+
+//Update game objects 
+var update = function (modifier) {
+
+   hero.y += hero.speed * modifier;
+   hero.x = (hero.y * Math.tan(hero.angle)) + 240;
+}
+
+//Keyboard controls
+addEventListener('keydown', function(event) {
+	if(event.keyCode == 37) {
+		hero.angle -= hero.sensitivity;
+		hero.rotation += 3;
+	}
+	else if(event.keyCode == 39) {
+		hero.angle += hero.sensitivity;
+		hero.rotation -= 3;
+	}  
+});
+
+
+//******OLD***** keyboard controls
+//var keysDown = {};
+
+//addEventListener("keydown", function (e) {
+//	keysDown[e.keyCode] = true;
+//}, false);
+
+//addEventListener("keyup", function (e) {
+//	delete keysDown[e.keyCode];
+//}, false);
+
+//Update game objects 
+//var update = function (modifier) {
+
+//   hero.y += hero.speed * modifier;
+//   hero.x = (hero.y * Math.tan(hero.angle)) + 240;
+
+ //bind keyboard controls   
+//	if (38 in keysDown) { //player holding up
+//		hero.y -= hero.speed * modifier;
+//	}
+//	if (40 in keysDown) { //player holding down
+//		hero.y += hero.speed * modifier;
+//	}
+//	if (37 in keysDown) { //player holding left
+
+//		hero.angle -= hero.sensitivity;
+//		delete keysDown[37];
+//	}
+//	if (39 in keysDown) { //player holding right
+//		hero.angle += hero.sensitivity;
+//		delete keysDown[39];
+//	}
+  
+//Main game loop
+var main = function () {
+	var now = Date.now();
+	var delta = now - then;
+	
+	update(delta / 1000);
+	render();
+	
+	then = now;
+};
+
+//Play
+var then = Date.now();
+setInterval(main, 5); //execute as fast as possible
+
+ </script>
+</body>
+
+</html>

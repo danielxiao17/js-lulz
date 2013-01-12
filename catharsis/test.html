@@ -1,0 +1,68 @@
+
+<!DOCTYPE HTML>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+	<title>How to rotate an image example 1 - translations</title>
+	<style type="text/css">
+		canvas {
+			border : 1px gray solid; 
+			
+		}
+	</style>
+</head>
+<body>
+	<script>
+
+	window.addEventListener("load", init); 
+	
+	var counter = 0,
+		logoImage = new Image(),
+		TO_RADIANS = Math.PI/180; 
+	logoImage.src = 'images/hero.png';
+	var canvas = document.createElement('canvas'); 
+	canvas.width = 600; 
+	canvas.height = 200; 
+	var context = canvas.getContext('2d'); 
+	document.body.appendChild(canvas); 
+
+	function init(){
+		setInterval(loop, 1000/30); 
+		
+	}
+
+	function loop() { 
+		context.clearRect(0,0,canvas.width, canvas.height); 
+		drawRotatedImage(logoImage,100,100,counter); 
+		drawRotatedImage(logoImage,300,100,counter+90); 
+		drawRotatedImage(logoImage,500,100,counter+180); 
+		counter+=2; 
+	
+	}
+	
+	
+	function drawRotatedImage(image, x, y, angle) { 
+
+		// save the current co-ordinate system 
+		// before we screw with it
+		context.save(); 
+
+		// move to the middle of where we want to draw our image
+		context.translate(x, y);
+
+		// rotate around that point, converting our 
+		// angle from degrees to radians 
+		context.rotate(angle * TO_RADIANS);
+
+		// draw it up and to the left by half the width
+		// and height of the image 
+		context.drawImage(image, -(image.width/2), -(image.height/2));
+
+		// and restore the co-ords to how they were when we began
+		context.restore(); 
+	}
+	
+
+	</script>
+</body>
+</html>
