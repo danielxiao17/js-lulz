@@ -77,7 +77,8 @@ var resetRandom = function (obj) {
     
     
 //////////Game objects
-
+var sound = new Audio("catharsis.wav"); // buffers automatically when created
+sound.play();
 
 //game over variable
     var gameOver = false;
