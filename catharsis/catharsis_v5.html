@@ -45,8 +45,8 @@ var context = canvas.getContext('2d');
                 ]
             });
             var walk = new Animation([
-                    { sprite: 'stand', time: 1 },
-                    { sprite: 'eat', time: 1 },
+                    { sprite: 'stand', time: 2000 },
+                    { sprite: 'eat', time: 2000 },
             ], sprites);
             var birdImage = new Image();
  
@@ -62,6 +62,8 @@ bgImage.onload = function () {
 	bgReady = true;
 };
 bgImage.src = "images/background.png";
+bgImage.width = 528;
+bgImage.height = 464;
 
 //load hero image
 var heroReady = false;
@@ -70,23 +72,90 @@ heroImage.onload = function () {
 	heroReady = true;
 };
 heroImage.src = "images/hero.png";
-heroImage.width = 10;
-heroImage.height = 17;
+heroImage.width = 10*4;
+heroImage.height = 17*4;
 
 
-//Game Objects
+//function for randomly placing objects
+var resetRandom = function (obj) {
+        //Throw the monster somewhere on the screen
+        obj.x = obj.box.width + (Math.random() * (canvas.width - obj.box.width * 2));
+        obj.y = obj.box.height + (Math.random() * (canvas.height - obj.box.height * 2));
+    };
+
+
+//load hero
 var hero = {
   speed: 30, //movement in pixels per second
-  x: 50,
-  y: 50,
-  angle:0,
-  sensitivity: 5,
+  x: bgImage.width/2,
+  y: 10,
+  xSpeed:0,
   rotation: 0,
   box:{width: heroImage.width, height: heroImage.height}
 };
 
+//load cloud image
+    var cloudReady = false;
+    var cloudImage = new Image();
+    cloudImage.onload = function () {
+        cloudReady = true;
+    };
+    cloudImage.src = "images/cloud1.png";
+    cloudImage.height = 26;
+    cloudImage.width = 112;
 
-//rotation stuff
+//load birds
+    var birdReady = true;
+
+
+///create clouds array
+    var clouds = [];
+    
+    
+///this spawns the clouds into the array
+    var spawnClouds = function () {
+        for (var i = 0; i < 20; i++) {
+            var cloud = {
+                x:0,
+                y:0
+            };
+            //create a lot of monsters
+            cloud.box = {width:31, height:25};
+            resetRandom(cloud);
+            clouds.push(cloud);
+
+        }
+    };
+
+///spawn clouds intially
+    spawnClouds();
+
+
+///create birds array
+    var birds = [];
+
+///this spawns the birds into the array
+    var spawnBirds = function () {
+        for (var i = 0; i < 20; i++) {
+            var bird = {
+                x: 0,
+                y: 0,
+                walk: new Animation([
+                { sprite:'stand', time:1 },
+                { sprite:'eat', time:1 }], sprites)
+            };
+            //create a lot of birds
+            bird.box = {width:31, height:25};
+            resetRandom(bird);
+            birds.push(bird);
+        }
+    };
+
+///spawn birds intially
+    spawnBirds();
+
+
+//function for drawing rotated images
 var TO_RADIANS = Math.PI/180; 
 function drawRotatedImage(image, x, y, angle) { 
 
@@ -103,7 +172,7 @@ function drawRotatedImage(image, x, y, angle) {
 
 		// draw it up and to the left by half the width
 		// and height of the image 
-		context.drawImage(image, -(image.width/2), -(image.height/2));
+		context.drawImage(image, -(image.width/2), -(image.height/2), image.width, image.height);
 
 		// and restore the co-ords to how they were when we began
 		context.restore(); 
@@ -114,19 +183,27 @@ function drawRotatedImage(image, x, y, angle) {
 
 
 //Render everything
-var render = function () {
+var render = function (delta) {
 	if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0, 528, 464);
 	}
 	if (heroReady) {
-	//	ctx.save();
-	//	ctx.translate(hero.x, hero.y)
-	//	ctx.rotate(hero.rotation * TO_RADIANS);
-	//	ctx.drawImage(heroImage, hero.x, hero.y, heroImage.width, heroImage.height);
-	//	ctx.restore();
+	
 		drawRotatedImage(heroImage, hero.x, hero.y, hero.rotation);
 	}
+	if (cloudReady) {
+            for (var i = 0; i < clouds.length; i++) {
+                ctx.drawImage(cloudImage, clouds[i].x, clouds[i].y, cloudImage.width, cloudImage.height);
+            }
+    }
 
+    if (birdReady) {
+            for (var i = 0; i < clouds.length; i++) {
+                birds[i].walk.animate(delta);
+                var frame = birds[i].walk.getSprite();
+                ctx.drawImage(birdImage, frame.x, frame.y, 5 * 4, 3 * 4, birds[i].x, birds[i].y, 5 * 4, 3 * 4)
+            }
+    }
 
 };
 
@@ -138,63 +215,34 @@ var render = function () {
 var update = function (modifier) {
 
    hero.y += hero.speed * modifier;
-   hero.x += hero.angle
+   hero.x += hero.xSpeed
 }
 
 //Keyboard controls
 addEventListener('keydown', function(event) {
 	if(event.keyCode == 37) {
-		hero.angle -= .05;
-		hero.rotation += .5;
+		if(hero.rotation < 35){
+			hero.xSpeed -= .02;
+			hero.rotation += 5;
+		}
 	}
 	else if(event.keyCode == 39) {
-		hero.angle += .05;
-		hero.rotation -= .5;
+		if(hero.rotation > -35) { 
+			hero.xSpeed += .02;
+			hero.rotation -= 5;
+		}
 	}  
 });
 
 
-//******OLD***** keyboard controls
-//var keysDown = {};
-
-//addEventListener("keydown", function (e) {
-//	keysDown[e.keyCode] = true;
-//}, false);
-
-//addEventListener("keyup", function (e) {
-//	delete keysDown[e.keyCode];
-//}, false);
-
-//Update game objects 
-//var update = function (modifier) {
-
-//   hero.y += hero.speed * modifier;
-//   hero.x = (hero.y * Math.tan(hero.angle)) + 240;
-
- //bind keyboard controls   
-//	if (38 in keysDown) { //player holding up
-//		hero.y -= hero.speed * modifier;
-//	}
-//	if (40 in keysDown) { //player holding down
-//		hero.y += hero.speed * modifier;
-//	}
-//	if (37 in keysDown) { //player holding left
-
-//		hero.angle -= hero.sensitivity;
-//		delete keysDown[37];
-//	}
-//	if (39 in keysDown) { //player holding right
-//		hero.angle += hero.sensitivity;
-//		delete keysDown[39];
-//	}
   
 //Main game loop
 var main = function () {
 	var now = Date.now();
-	var delta = now - then;
+	var delta = (now - then)/1000;
 	
-	update(delta / 1000);
-	render();
+	update(delta);
+	render(delta);
 	
 	then = now;
 };

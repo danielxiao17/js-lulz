@@ -35,12 +35,14 @@
 
 
 //load Background image
-    var bgReady = false;
-    var bgImage = new Image();
-    bgImage.onload = function () {
-        bgReady = true;
-    };
-    bgImage.src = "images/background.png";
+	var bgReady = false;
+	var bgImage = new Image();
+	bgImage.onload = function () {
+	bgReady = true;
+	};
+	bgImage.src = "images/background.png";
+	bgImage.width = 528;
+	bgImage.height = 464;
 
 //load hero image
     var heroReady = false;
@@ -66,25 +68,29 @@
 //load birds
     var birdReady = true;
 
-
+//function for randomly placing objects
+var resetRandom = function (obj) {
+        //Throw the monster somewhere on the screen
+        obj.x = obj.box.width + (Math.random() * (canvas.width - obj.box.width * 2));
+        obj.y = obj.box.height + (Math.random() * (canvas.height - obj.box.height * 2));
+    };
+    
+    
 //////////Game objects
 
 
 //game over variable
     var gameOver = false;
+    
 //this is the player
-    var hero = {
-        speed: 250, //movement in pixels per second
-        x: 0,
-        y: 0,
-        box: {width: heroImage.width, height: heroImage.height}
-    };
-    var resetRandom = function (obj) {
-        //Throw the monster somewhere on the screen
-        obj.x = obj.box.width + (Math.random() * (canvas.width - obj.box.width * 2));
-        obj.y = obj.box.height + (Math.random() * (canvas.height - obj.box.height * 2));
-    };
-
+	var hero = {
+ 		speed: 30, //movement in pixels per second
+  		x: bgImage.width/2,
+  		y: 10,
+  		xSpeed:0,
+  		rotation: 0,
+  		box:{width: heroImage.width, height: heroImage.height}
+	};
 
 ///create clouds array
     var clouds = [];
@@ -141,46 +147,53 @@
     }
 
 
-    var randomNumber = 0;
+//function for drawing rotated images
+var TO_RADIANS = Math.PI/180; 
+function drawRotatedImage(image, x, y, angle) { 
 
+		// save the current co-ordinate system 
+		// before we screw with it
+		ctx.save(); 
 
-//Handle keyboard controls
-    var keysDown = {};
+		// move to the middle of where we want to draw our image
+		ctx.translate(x, y);
 
-    addEventListener("keydown", function (e) {
-        keysDown[e.keyCode] = true;
-    }, false);
+		// rotate around that point, converting our 
+		// angle from degrees to radians 
+		ctx.rotate(angle * TO_RADIANS);
 
-    addEventListener("keyup", function (e) {
-        delete keysDown[e.keyCode];
-    }, false);
+		// draw it up and to the left by half the width
+		// and height of the image 
+		ctx.drawImage(image, -(image.width/2), -(image.height/2), image.width, image.height);
+
+		// and restore the co-ords to how they were when we began
+		ctx.restore(); 
+	}
+	
+	
+
+//Keyboard controls
+addEventListener('keydown', function(event) {
+	if(event.keyCode == 37) {
+		if(hero.rotation < 35){
+			hero.xSpeed -= .02;
+			hero.rotation += 5;
+		}
+	}
+	else if(event.keyCode == 39) {
+		if(hero.rotation > -35) { 
+			hero.xSpeed += .02;
+			hero.rotation -= 5;
+		}
+	}  
+});
 
 
 //Update game objects
     var update = function (modifier) {
-
-
-
-
-
-        //bind keyboard controls
-        if (38 in keysDown) { //player holding up
-            hero.y -= hero.speed * modifier;
-        }
-        if (40 in keysDown) { //player holding down
-            hero.y += hero.speed * modifier;
-        }
-        if (37 in keysDown) { //player holding left
-            heroImage.src = "images/hero.png";
-
-            hero.x -= hero.speed * modifier;
-        }
-        if (39 in keysDown) { //player holding right
-            hero.x += hero.speed * modifier;
-        }
-
-
-    };
+   		hero.y += hero.speed * modifier;
+   		hero.x += hero.xSpeed
+	};
 
 
 //Draw everything
@@ -193,7 +206,7 @@
             ctx.fillText("You starved to death!", 325, 290);
         }
         else if (heroReady) {
-            ctx.drawImage(heroImage, hero.x, hero.y, heroImage.width, heroImage.height);
+			drawRotatedImage(heroImage, hero.x, hero.y, hero.rotation);
         }
 
         if (cloudReady) {
